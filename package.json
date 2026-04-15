@@ -6,6 +6,7 @@
   "description": "Sync funding metadata and enable GitHub sponsorships in bulk.",
   "author": "jinghaihan",
   "license": "MIT",
+  "funding": "https://github.com/sponsors/jinghaihan",
   "homepage": "https://github.com/jinghaihan/gh-sponsor-up#readme",
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "@clack/prompts": "catalog:prod",
     "ansis": "catalog:prod",
     "cac": "catalog:prod",
+    "code-finder": "catalog:prod",
     "pathe": "catalog:prod",
     "unconfig": "catalog:prod"
   },
@@ -53,6 +55,7 @@
     "pncat": "catalog:dev",
     "simple-git-hooks": "catalog:dev",
     "taze": "catalog:dev",
+    "tildify": "catalog:dev",
     "tsx": "catalog:dev",
     "typescript": "catalog:dev",
     "@octohash/eslint-config": "catalog:lint",

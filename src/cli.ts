@@ -1,9 +1,12 @@
 import type { CAC } from 'cac'
 import type { CommandOptions } from './types'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import * as p from '@clack/prompts'
 import c from 'ansis'
 import { cac } from 'cac'
+import { DEFAULT_OPTIONS, detectCodespaces } from 'code-finder'
+import tildify from 'tildify'
 import { resolveConfig } from './config'
 import { NAME, VERSION } from './constants'
 
@@ -23,7 +26,20 @@ try {
 
       const config = await resolveConfig(options)
 
-      console.log(config)
+      const codespaces = await detectCodespaces({
+        ...DEFAULT_OPTIONS,
+        cwd: config.cwd || process.cwd(),
+      })
+
+      const paths = codespaces.map(i => fileURLToPath(i.folderUri!))
+
+      const result = await p.multiselect({
+        message: 'select the repositories',
+        options: paths.map(path => ({ value: path, label: tildify(path) })),
+        initialValues: paths,
+      })
+
+      console.log(result)
     })
 
   cli.help()
