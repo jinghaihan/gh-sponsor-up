@@ -7,9 +7,10 @@ catalogs:
     pncat: ^0.11.1
     simple-git-hooks: ^2.13.1
     taze: ^19.11.0
-    tildify: ^3.0.0
     tsx: ^4.21.0
     typescript: ^6.0.2
+  inlined:
+    tildify: ^3.0.0
   lint:
     '@octohash/eslint-config': ^0.3.1
     eslint: ^10.2.0
@@ -19,6 +20,8 @@ catalogs:
     ansis: ^4.2.0
     cac: ^7.0.0
     code-finder: ^0.3.1
+    detect-indent: ^7.0.2
+    ofetch: ^1.5.1
     pathe: ^2.0.3
     unconfig: ^7.5.0
   test:

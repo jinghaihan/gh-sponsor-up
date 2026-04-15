@@ -3,14 +3,6 @@ import process from 'node:process'
 import { createConfigLoader } from 'unconfig'
 import { DEFAULT_OPTIONS } from './constants'
 
-function normalizeConfig(options: Partial<CommandOptions>) {
-  // interop
-  if ('default' in options)
-    options = options.default as Partial<CommandOptions>
-
-  return options
-}
-
 export async function readConfig(options: Partial<CommandOptions>) {
   const loader = createConfigLoader<ConfigOptions>({
     sources: [
@@ -39,4 +31,12 @@ export async function resolveConfig(options: Partial<CommandOptions>): Promise<O
     merged.funding = []
 
   return merged as Options
+}
+
+function normalizeConfig(options: Partial<CommandOptions>) {
+  // interop
+  if ('default' in options)
+    options = options.default as Partial<CommandOptions>
+
+  return options
 }
