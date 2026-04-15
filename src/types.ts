@@ -6,6 +6,7 @@ export interface CommandOptions {
   push?: boolean
   message?: string
   project?: boolean
+  postRun?: string
 }
 
 export interface ConfigOptions extends CommandOptions {}
@@ -22,6 +23,16 @@ export interface FundingConfig {
 export interface GitHubRepository {
   owner: string
   repo: string
+}
+
+export interface GitHubFundingLink {
+  platform: string
+  url: string
+}
+
+export interface GitHubRepositorySponsorshipState {
+  hasSponsorshipsEnabled: boolean
+  fundingLinks: GitHubFundingLink[]
 }
 
 export interface GitCommandResult {

@@ -12,8 +12,8 @@ export const PACKAGE_JSON_PATH = 'package.json'
 export const FUNDING_CONFIG_PATH = '.github/FUNDING.yml'
 
 export const DEFAULT_OPTIONS: Partial<Options> = {
-  commit: false,
-  push: false,
+  commit: true,
+  push: true,
   message: 'chore: update funding metadata',
   project: true,
 }

@@ -23,6 +23,7 @@ catalogs:
     detect-indent: ^7.0.2
     ofetch: ^1.5.1
     pathe: ^2.0.3
+    tinyexec: ^1.1.1
     unconfig: ^7.5.0
   test:
     vitest: ^4.1.4

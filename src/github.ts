@@ -1,4 +1,4 @@
-import type { PackageJSON } from './types'
+import type { GitHubRepositorySponsorshipState, PackageJSON } from './types'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import process from 'node:process'
@@ -40,6 +40,16 @@ export async function enableProjectSponsorship(cwd: string, token?: string) {
   if (!repository)
     return false
 
+  const sponsorshipState = await getRepositorySponsorshipState(repository, token)
+  if (!sponsorshipState.fundingLinks.length) {
+    throw new Error(
+      `remote funding metadata is not available on GitHub for ${repository.owner}/${repository.repo}. push your funding changes before enabling project sponsorships.`,
+    )
+  }
+
+  if (sponsorshipState.hasSponsorshipsEnabled)
+    return true
+
   await $fetch(`${GITHUB_API_URL}/repos/${repository.owner}/${repository.repo}`, {
     method: 'PATCH',
     headers: {
@@ -51,6 +61,10 @@ export async function enableProjectSponsorship(cwd: string, token?: string) {
       has_sponsorships_enabled: true,
     },
   })
+
+  const updatedSponsorshipState = await getRepositorySponsorshipState(repository, token)
+  if (!updatedSponsorshipState.hasSponsorshipsEnabled)
+    throw new Error(`failed to enable project sponsorships for ${repository.owner}/${repository.repo}.`)
 
   return true
 }
@@ -80,4 +94,32 @@ function getGitHubToken(input?: string) {
     throw new Error('missing GitHub token. set GH_TOKEN or GITHUB_TOKEN to enable project sponsorships.')
 
   return token
+}
+
+async function getRepositorySponsorshipState(repository: { owner: string, repo: string }, token?: string) {
+  const response = await $fetch<{ data: { repository: GitHubRepositorySponsorshipState } }>(`${GITHUB_API_URL}/graphql`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${getGitHubToken(token)}`,
+      'User-Agent': NAME,
+    },
+    body: {
+      query: `query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          hasSponsorshipsEnabled
+          fundingLinks {
+            platform
+            url
+          }
+        }
+      }`,
+      variables: {
+        owner: repository.owner,
+        repo: repository.repo,
+      },
+    },
+  })
+
+  return response.data.repository
 }

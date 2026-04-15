@@ -9,7 +9,7 @@ import { DEFAULT_OPTIONS, detectCodespaces } from 'code-finder'
 import tildify from 'tildify'
 import { resolveConfig } from './config'
 import { NAME, VERSION } from './constants'
-import { updateCodespace } from './handler'
+import { updateCodespace } from './updater'
 
 const cli: CAC = cac(NAME)
 
@@ -18,10 +18,11 @@ cli
   .option('--cwd <path>', 'Current working directory')
   .option('--funding <fundings>', 'Funding people or organizations of github sponsorships')
   .option('--token <token>', 'GitHub token for enabling project sponsorships')
-  .option('--commit', 'Whether to commit the changes', { default: false })
-  .option('--push', 'Whether to push the changes', { default: false })
+  .option('--commit', 'Whether to commit the changes', { default: true })
+  .option('--push', 'Whether to push the changes', { default: true })
   .option('--message <message>', 'Commit message', { default: 'chore: update funding metadata' })
   .option('--project', 'Whether to enable GitHub sponsorships for the project', { default: true })
+  .option('--post-run <command>', 'A command to run after updating the repository')
   .allowUnknownOptions()
   .action((options: Partial<CommandOptions>) => runCliAction(options).catch((error) => {
     console.error(error)

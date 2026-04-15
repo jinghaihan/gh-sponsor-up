@@ -49,6 +49,7 @@
     "detect-indent": "catalog:prod",
     "ofetch": "catalog:prod",
     "pathe": "catalog:prod",
+    "tinyexec": "catalog:prod",
     "unconfig": "catalog:prod"
   },
   "devDependencies": {

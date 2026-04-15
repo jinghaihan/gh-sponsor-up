@@ -66,12 +66,51 @@ describe('github helpers', () => {
   it('enables sponsorships for the resolved GitHub repository', async () => {
     const cwd = await createRepository()
     git(['remote', 'add', 'origin', 'git@github.com:jinghaihan/pncat.git'], cwd)
-    mockFetch.mockResolvedValue({})
+    mockFetch
+      .mockResolvedValueOnce({
+        data: {
+          repository: {
+            hasSponsorshipsEnabled: false,
+            fundingLinks: [
+              {
+                platform: 'GITHUB',
+                url: 'https://github.com/jinghaihan',
+              },
+            ],
+          },
+        },
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        data: {
+          repository: {
+            hasSponsorshipsEnabled: true,
+            fundingLinks: [
+              {
+                platform: 'GITHUB',
+                url: 'https://github.com/jinghaihan',
+              },
+            ],
+          },
+        },
+      })
 
     const enabled = await enableProjectSponsorship(cwd, 'test-token')
 
     expect(enabled).toBe(true)
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'https://api.github.com/graphql',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Accept: 'application/vnd.github+json',
+          Authorization: 'Bearer test-token',
+        }),
+      }),
+    )
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
       'https://api.github.com/repos/jinghaihan/pncat',
       expect.objectContaining({
         method: 'PATCH',
@@ -83,6 +122,30 @@ describe('github helpers', () => {
           Authorization: 'Bearer test-token',
         }),
       }),
+    )
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      3,
+      'https://api.github.com/graphql',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    )
+  })
+
+  it('throws when remote funding metadata is not available on GitHub', async () => {
+    const cwd = await createRepository()
+    git(['remote', 'add', 'origin', 'git@github.com:jinghaihan/pncat.git'], cwd)
+    mockFetch.mockResolvedValueOnce({
+      data: {
+        repository: {
+          hasSponsorshipsEnabled: false,
+          fundingLinks: [],
+        },
+      },
+    })
+
+    await expect(enableProjectSponsorship(cwd, 'test-token')).rejects.toThrow(
+      'remote funding metadata is not available on GitHub for jinghaihan/pncat. push your funding changes before enabling project sponsorships.',
     )
   })
 })

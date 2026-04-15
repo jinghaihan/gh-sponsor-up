@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import detectIndent from 'detect-indent'
 import { dirname, join } from 'pathe'
+import { x } from 'tinyexec'
 import { DEFAULT_OPTIONS, FUNDING_CONFIG_PATH, PACKAGE_JSON_PATH } from './constants'
 import { commitChanges, pushChanges } from './git'
 import { enableProjectSponsorship } from './github'
@@ -18,13 +19,16 @@ export async function updateCodespace(path: string, options: Options) {
   if (fundingConfigPath)
     changedFiles.push(fundingConfigPath)
 
+  if (options.postRun)
+    await x(options.postRun, [], { nodeOptions: { cwd: path, shell: true } })
+
   if (options.commit)
     await commitChanges(path, options.message || DEFAULT_OPTIONS.message!, changedFiles)
 
   if (options.push)
     await pushChanges(path)
 
-  if (options.project)
+  if (options.project && ((options.commit && options.push) || !changedFiles.length))
     await enableProjectSponsorship(path, options.token)
 
   return changedFiles
@@ -62,6 +66,7 @@ async function updatePackageJSON(path: string, options: Options) {
   })
   data.funding = fundings
   await write()
+
   return PACKAGE_JSON_PATH
 }
 
