@@ -22,11 +22,11 @@ export async function updateCodespace(path: string, options: Options) {
   if (options.postRun)
     await x(options.postRun, [], { throwOnError: true, nodeOptions: { cwd: path, shell: true } })
 
-  if (options.commit)
+  if (options.commit && changedFiles.length)
     committed = await commitChanges(path, options.message || DEFAULT_OPTIONS.message!, changedFiles)
 
   let pushed = false
-  if (options.push)
+  if (committed && options.push && changedFiles.length)
     pushed = await pushChanges(path)
 
   const result: RepositoryUpdateResult = {
