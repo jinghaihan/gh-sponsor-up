@@ -22,6 +22,7 @@ catalogs:
     code-finder: ^0.3.1
     detect-indent: ^7.0.2
     ofetch: ^1.5.1
+    p-retry: ^8.0.0
     pathe: ^2.0.3
     tinyexec: ^1.1.1
     unconfig: ^7.5.0

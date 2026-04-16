@@ -16,4 +16,6 @@ export const DEFAULT_OPTIONS: Partial<Options> = {
   push: true,
   message: 'chore: update funding metadata',
   project: true,
+  retries: 5,
+  retryInterval: 120000,
 }

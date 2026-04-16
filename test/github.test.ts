@@ -4,7 +4,7 @@ import process from 'node:process'
 import { join } from 'pathe'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { enableProjectSponsorship, parseGitHubRepositoryUrl } from '../src/github'
+import { enableProjectSponsorship, isRetryableProjectSponsorshipError, parseGitHubRepositoryUrl } from '../src/github'
 
 const mockFetch = vi.hoisted(() => vi.fn())
 
@@ -168,5 +168,17 @@ describe('github helpers', () => {
     await expect(enableProjectSponsorship(cwd, 'test-token')).rejects.toThrow(
       'remote funding metadata is not available on GitHub for jinghaihan/pncat. push your funding changes before enabling project sponsorships.',
     )
+  })
+
+  it('marks retryable project sponsorship errors', () => {
+    expect(isRetryableProjectSponsorshipError(
+      new Error('remote funding metadata is not available on GitHub for jinghaihan/pncat. push your funding changes before enabling project sponsorships.'),
+    )).toBe(true)
+    expect(isRetryableProjectSponsorshipError(
+      new Error('failed to enable project sponsorships for jinghaihan/pncat.'),
+    )).toBe(true)
+    expect(isRetryableProjectSponsorshipError(
+      new Error('missing GitHub token. set GH_TOKEN or GITHUB_TOKEN to enable project sponsorships.'),
+    )).toBe(false)
   })
 })

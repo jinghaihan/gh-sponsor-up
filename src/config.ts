@@ -3,7 +3,7 @@ import process from 'node:process'
 import { createConfigLoader } from 'unconfig'
 import { DEFAULT_OPTIONS } from './constants'
 
-export async function readConfig(options: Partial<CommandOptions>) {
+export async function readConfig(options: Partial<CommandOptions> = {}) {
   const loader = createConfigLoader<ConfigOptions>({
     sources: [
       {
@@ -18,7 +18,7 @@ export async function readConfig(options: Partial<CommandOptions>) {
   return config.sources.length ? normalizeConfig(config.config) : {}
 }
 
-export async function resolveConfig(options: Partial<CommandOptions>): Promise<Options> {
+export async function resolveConfig(options: Partial<CommandOptions> = {}): Promise<Options> {
   const defaults = structuredClone(DEFAULT_OPTIONS)
   options = normalizeConfig(options)
 
@@ -30,13 +30,35 @@ export async function resolveConfig(options: Partial<CommandOptions>): Promise<O
   else
     merged.funding = []
 
+  merged.retries = normalizeRetries(merged.retries)
+  merged.retryInterval = normalizeRetryInterval(merged.retryInterval)
+
   return merged as Options
 }
 
-function normalizeConfig(options: Partial<CommandOptions>) {
+function normalizeConfig(options?: Partial<CommandOptions>) {
+  if (!options)
+    return {}
+
   // interop
   if ('default' in options)
     options = options.default as Partial<CommandOptions>
 
   return options
+}
+
+function normalizeRetries(value?: number | string) {
+  const retries = Number(value ?? DEFAULT_OPTIONS.retries ?? 0)
+  if (!Number.isInteger(retries) || retries < 0)
+    throw new Error('retries must be a non-negative integer.')
+
+  return retries
+}
+
+function normalizeRetryInterval(value?: number | string) {
+  const retryInterval = Number(value ?? DEFAULT_OPTIONS.retryInterval ?? 0)
+  if (!Number.isInteger(retryInterval) || retryInterval < 0)
+    throw new Error('retryInterval must be a non-negative integer.')
+
+  return retryInterval
 }

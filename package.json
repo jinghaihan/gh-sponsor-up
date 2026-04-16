@@ -15,7 +15,10 @@
   "bugs": {
     "url": "https://github.com/jinghaihan/gh-sponsor-up/issues"
   },
-  "keywords": [],
+  "keywords": [
+    "funding",
+    "sponsorship"
+  ],
   "exports": {
     ".": "./dist/index.mjs",
     "./cli": "./dist/cli.mjs",
@@ -48,6 +51,7 @@
     "code-finder": "catalog:prod",
     "detect-indent": "catalog:prod",
     "ofetch": "catalog:prod",
+    "p-retry": "catalog:prod",
     "pathe": "catalog:prod",
     "tinyexec": "catalog:prod",
     "unconfig": "catalog:prod"

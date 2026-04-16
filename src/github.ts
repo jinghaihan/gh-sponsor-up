@@ -35,6 +35,13 @@ export async function resolveGitHubRepository(cwd: string) {
   return parseGitHubRepositoryUrl(await readPackageRepositoryUrl(cwd))
 }
 
+export function isRetryableProjectSponsorshipError(error: unknown) {
+  const message = error instanceof Error ? error.message : `${error}`
+
+  return message.startsWith('remote funding metadata is not available on GitHub for ')
+    || message.startsWith('failed to enable project sponsorships for ')
+}
+
 export async function enableProjectSponsorship(cwd: string, token?: string) {
   const repository = await resolveGitHubRepository(cwd)
   if (!repository)

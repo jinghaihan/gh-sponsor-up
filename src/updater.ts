@@ -1,4 +1,4 @@
-import type { FundingConfig, Options } from './types'
+import type { FundingConfig, Options, RepositoryUpdateResult } from './types'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import detectIndent from 'detect-indent'
@@ -6,7 +6,6 @@ import { dirname, join } from 'pathe'
 import { x } from 'tinyexec'
 import { DEFAULT_OPTIONS, FUNDING_CONFIG_PATH, PACKAGE_JSON_PATH } from './constants'
 import { commitChanges, pushChanges } from './git'
-import { enableProjectSponsorship } from './github'
 
 export async function updateCodespace(path: string, options: Options) {
   const changedFiles: string[] = []
@@ -19,19 +18,25 @@ export async function updateCodespace(path: string, options: Options) {
   if (fundingConfigPath)
     changedFiles.push(fundingConfigPath)
 
+  let committed = false
   if (options.postRun)
-    await x(options.postRun, [], { nodeOptions: { cwd: path, shell: true } })
+    await x(options.postRun, [], { throwOnError: true, nodeOptions: { cwd: path, shell: true } })
 
   if (options.commit)
-    await commitChanges(path, options.message || DEFAULT_OPTIONS.message!, changedFiles)
+    committed = await commitChanges(path, options.message || DEFAULT_OPTIONS.message!, changedFiles)
 
+  let pushed = false
   if (options.push)
-    await pushChanges(path)
+    pushed = await pushChanges(path)
 
-  if (options.project && ((options.commit && options.push) || !changedFiles.length))
-    await enableProjectSponsorship(path, options.token)
+  const result: RepositoryUpdateResult = {
+    path,
+    changedFiles,
+    committed,
+    pushed,
+  }
 
-  return changedFiles
+  return result
 }
 
 async function updatePackageJSON(path: string, options: Options) {
