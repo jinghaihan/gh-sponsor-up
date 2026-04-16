@@ -28,7 +28,7 @@ async function createRepository() {
 }
 
 afterEach(async () => {
-  await Promise.all(tempDirs.splice(0).map(async dir => rm(dir, { recursive: true, force: true })))
+  await Promise.all(tempDirs.splice(0).map(async dir => removeDirectory(dir)))
 })
 
 describe('git helpers', () => {
@@ -72,5 +72,26 @@ describe('git helpers', () => {
     expect(pushed).toBe(true)
     expect(git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}'], cwd)).toBe('origin/main')
     expect(git(['--git-dir', remote, 'rev-parse', '--verify', 'refs/heads/main'])).toMatch(/^[0-9a-f]{40}$/)
-  })
+  }, 15000)
 })
+
+async function removeDirectory(dir: string) {
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      await rm(dir, { recursive: true, force: true })
+      return
+    }
+    catch (error) {
+      if (!isRetryableWindowsCleanupError(error) || attempt === 5)
+        throw error
+
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  }
+}
+
+function isRetryableWindowsCleanupError(error: unknown) {
+  return error instanceof Error
+    && 'code' in error
+    && ['EBUSY', 'ENOTEMPTY', 'EPERM'].includes(`${error.code}`)
+}
