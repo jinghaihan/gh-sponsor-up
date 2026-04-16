@@ -80,7 +80,28 @@ describe('github helpers', () => {
           },
         },
       })
-      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        data: {
+          repository: {
+            id: 'repo-id',
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          updateRepository: {
+            repository: {
+              hasSponsorshipsEnabled: true,
+              fundingLinks: [
+                {
+                  platform: 'GITHUB',
+                  url: 'https://github.com/jinghaihan',
+                },
+              ],
+            },
+          },
+        },
+      })
       .mockResolvedValueOnce({
         data: {
           repository: {
@@ -111,20 +132,20 @@ describe('github helpers', () => {
     )
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
-      'https://api.github.com/repos/jinghaihan/pncat',
+      'https://api.github.com/graphql',
       expect.objectContaining({
-        method: 'PATCH',
-        body: {
-          has_sponsorships_enabled: true,
-        },
-        headers: expect.objectContaining({
-          Accept: 'application/vnd.github+json',
-          Authorization: 'Bearer test-token',
-        }),
+        method: 'POST',
       }),
     )
     expect(mockFetch).toHaveBeenNthCalledWith(
       3,
+      'https://api.github.com/graphql',
+      expect.objectContaining({
+        method: 'POST',
+      }),
+    )
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      4,
       'https://api.github.com/graphql',
       expect.objectContaining({
         method: 'POST',

@@ -35,6 +35,10 @@ export interface GitHubRepositorySponsorshipState {
   fundingLinks: GitHubFundingLink[]
 }
 
+export interface GitHubGraphQLResponse<T> {
+  data: T
+}
+
 export interface GitCommandResult {
   code: number
   stdout: string

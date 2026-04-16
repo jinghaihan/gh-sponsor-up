@@ -1,4 +1,4 @@
-import type { GitHubRepositorySponsorshipState, PackageJSON } from './types'
+import type { GitHubGraphQLResponse, GitHubRepositorySponsorshipState, PackageJSON } from './types'
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import process from 'node:process'
@@ -50,17 +50,7 @@ export async function enableProjectSponsorship(cwd: string, token?: string) {
   if (sponsorshipState.hasSponsorshipsEnabled)
     return true
 
-  await $fetch(`${GITHUB_API_URL}/repos/${repository.owner}/${repository.repo}`, {
-    method: 'PATCH',
-    headers: {
-      'Accept': 'application/vnd.github+json',
-      'Authorization': `Bearer ${getGitHubToken(token)}`,
-      'User-Agent': NAME,
-    },
-    body: {
-      has_sponsorships_enabled: true,
-    },
-  })
+  await updateRepositorySponsorshipState(repository, token)
 
   const updatedSponsorshipState = await getRepositorySponsorshipState(repository, token)
   if (!updatedSponsorshipState.hasSponsorshipsEnabled)
@@ -97,7 +87,7 @@ function getGitHubToken(input?: string) {
 }
 
 async function getRepositorySponsorshipState(repository: { owner: string, repo: string }, token?: string) {
-  const response = await $fetch<{ data: { repository: GitHubRepositorySponsorshipState } }>(`${GITHUB_API_URL}/graphql`, {
+  const response = await $fetch<GitHubGraphQLResponse<{ repository: GitHubRepositorySponsorshipState }>>(`${GITHUB_API_URL}/graphql`, {
     method: 'POST',
     headers: {
       'Accept': 'application/vnd.github+json',
@@ -122,4 +112,51 @@ async function getRepositorySponsorshipState(repository: { owner: string, repo: 
   })
 
   return response.data.repository
+}
+
+async function updateRepositorySponsorshipState(repository: { owner: string, repo: string }, token?: string) {
+  const repositoryResponse = await $fetch<GitHubGraphQLResponse<{ repository: { id: string } }>>(`${GITHUB_API_URL}/graphql`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${getGitHubToken(token)}`,
+      'User-Agent': NAME,
+    },
+    body: {
+      query: `query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          id
+        }
+      }`,
+      variables: {
+        owner: repository.owner,
+        repo: repository.repo,
+      },
+    },
+  })
+
+  await $fetch<GitHubGraphQLResponse<{ updateRepository: { repository: GitHubRepositorySponsorshipState } }>>(`${GITHUB_API_URL}/graphql`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${getGitHubToken(token)}`,
+      'User-Agent': NAME,
+    },
+    body: {
+      query: `mutation($id: ID!) {
+        updateRepository(input: { repositoryId: $id, hasSponsorshipsEnabled: true }) {
+          repository {
+            hasSponsorshipsEnabled
+            fundingLinks {
+              platform
+              url
+            }
+          }
+        }
+      }`,
+      variables: {
+        id: repositoryResponse.data.repository.id,
+      },
+    },
+  })
 }
