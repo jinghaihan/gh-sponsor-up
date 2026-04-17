@@ -39,6 +39,8 @@ export default defineConfig({
 })
 ```
 
+If `token` is omitted, `GH_TOKEN` or `GITHUB_TOKEN` will be used automatically.
+
 ## License
 
 [MIT](./LICENSE) License © [jinghaihan](https://github.com/jinghaihan)

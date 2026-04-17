@@ -24,6 +24,7 @@ export async function resolveConfig(options: Partial<CommandOptions> = {}): Prom
 
   const configOptions = await readConfig(options)
   const merged = { ...defaults, ...configOptions, ...options }
+  merged.token ||= process.env.GH_TOKEN || process.env.GITHUB_TOKEN
 
   if (merged.funding)
     merged.funding = Array.isArray(merged.funding) ? merged.funding : [merged.funding]
