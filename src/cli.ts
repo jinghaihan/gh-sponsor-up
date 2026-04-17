@@ -12,6 +12,15 @@ import { resolveConfig } from './config'
 import { NAME, VERSION } from './constants'
 import { enableProjectSponsorship, isRetryableProjectSponsorshipError } from './github'
 import { updateCodespace } from './updater'
+import {
+  canEnableProjectSponsorship,
+  formatAttempt,
+  formatProgress,
+  renderSummary,
+  reportFailures,
+  reportSkippedProjectTargets,
+  toError,
+} from './utils'
 
 const cli: CAC = cac(NAME)
 
@@ -174,49 +183,6 @@ async function runProjectPhase(results: RepositoryUpdateResult[], config: Awaite
     failures,
     skippedCount: results.length - projectTargets.length,
   }
-}
-
-function canEnableProjectSponsorship(result: RepositoryUpdateResult) {
-  return result.changedFiles.length === 0 || (result.committed && result.pushed)
-}
-
-function formatAttempt(attemptNumber: number, totalAttempts: number, retryDelay: number) {
-  return `(attempt ${c.yellow(attemptNumber)}/${c.yellow(totalAttempts)}, retry in ${c.yellow(retryDelay)}ms)`
-}
-
-function formatFailure(failure: RepositoryFailure) {
-  return `${tildify(failure.path)} [${failure.stage}]: ${failure.error.message}`
-}
-
-function formatProgress(current: number, total: number) {
-  return `(${c.yellow(current)}/${c.yellow(total)})`
-}
-
-function renderSummary(selectedCount: number, updatedCount: number, enabledCount: number, failedCount: number) {
-  p.note([
-    `selected: ${c.yellow(selectedCount)}`,
-    `updated: ${c.yellow(updatedCount)}`,
-    `enabled: ${c.yellow(enabledCount)}`,
-    `failed: ${c.yellow(failedCount)}`,
-  ].join('\n'), 'summary')
-}
-
-function reportFailures(failures: RepositoryFailure[]) {
-  for (const failure of failures)
-    p.log.error(formatFailure(failure))
-}
-
-function reportSkippedProjectTargets(project: boolean | undefined, skippedCount: number) {
-  if (!project || skippedCount === 0)
-    return
-
-  p.log.warn(
-    `skipped GitHub sponsorships for ${c.yellow(skippedCount)} repositories until funding changes are committed and pushed`,
-  )
-}
-
-function toError(error: unknown) {
-  return error instanceof Error ? error : new Error(`${error}`)
 }
 
 try {
