@@ -76,7 +76,7 @@ async function updatePackageJSON(path: string, options: Options) {
 }
 
 async function updateFunding(path: string, options: Options) {
-  if (!options.funding.length)
+  if (!options.funding.length && !options.fundingTemplate)
     return
 
   const filepath = join(path, FUNDING_CONFIG_PATH)
@@ -85,9 +85,11 @@ async function updateFunding(path: string, options: Options) {
 
   await mkdir(dirname(filepath), { recursive: true })
 
-  const content = options.funding.length === 1
-    ? `github: ${options.funding[0]}\n`
-    : `github: [${options.funding.join(', ')}]\n`
+  const content = options.fundingTemplate
+    ? await readFile(options.fundingTemplate, 'utf-8')
+    : options.funding.length === 1
+      ? `github: ${options.funding[0]}\n`
+      : `github: [${options.funding.join(', ')}]\n`
 
   await writeFile(filepath, content, 'utf-8')
   return FUNDING_CONFIG_PATH

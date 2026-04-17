@@ -72,6 +72,32 @@ describe('updater', () => {
 
     expect(normalize(await readFile(join(cwd, 'post-run.txt'), 'utf-8'))).toBe(normalize(cwd))
   }, 15000)
+
+  it('copies a funding template when provided', async () => {
+    const cwd = await createRepository()
+    const fundingTemplate = join(cwd, 'funding-template.yml')
+    await writeFile(fundingTemplate, 'github: [jinghaihan, octocat]\ncustom: [https://example.com/sponsor]\n', 'utf-8')
+
+    const result = await updateCodespace(cwd, {
+      funding: [],
+      fundingTemplate,
+      commit: false,
+      push: false,
+      project: true,
+      retries: 5,
+      retryInterval: 120000,
+    })
+
+    expect(result).toEqual({
+      path: cwd,
+      changedFiles: ['.github/FUNDING.yml'],
+      committed: false,
+      pushed: false,
+    })
+    expect(await readFile(join(cwd, '.github/FUNDING.yml'), 'utf-8')).toBe(
+      'github: [jinghaihan, octocat]\ncustom: [https://example.com/sponsor]\n',
+    )
+  })
 })
 
 async function removeDirectory(dir: string) {

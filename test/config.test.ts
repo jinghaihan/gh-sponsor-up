@@ -1,10 +1,18 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import process from 'node:process'
+import { join } from 'pathe'
 import { afterEach, describe, expect, it } from 'vitest'
 import { resolveConfig } from '../src/config'
+
+const tempDirs: string[] = []
 
 afterEach(() => {
   delete process.env.GH_TOKEN
   delete process.env.GITHUB_TOKEN
+})
+
+afterEach(async () => {
+  await Promise.all(tempDirs.splice(0).map(async dir => rm(dir, { recursive: true, force: true })))
 })
 
 describe('config', () => {
@@ -31,5 +39,23 @@ describe('config', () => {
     const config = await resolveConfig({ token: 'config-token' })
 
     expect(config.token).toBe('config-token')
+  })
+
+  it('resolves fundingTemplate to an absolute path', async () => {
+    const cwd = await mkdtemp(join(process.cwd(), 'test/.tmp/config-'))
+    tempDirs.push(cwd)
+    await writeFile(join(cwd, 'funding-template.yml'), 'github: jinghaihan\n', 'utf-8')
+
+    const previousCwd = process.cwd()
+    process.chdir(cwd)
+
+    try {
+      const config = await resolveConfig({ fundingTemplate: './funding-template.yml' })
+
+      expect(config.fundingTemplate).toBe(join(cwd, 'funding-template.yml'))
+    }
+    finally {
+      process.chdir(previousCwd)
+    }
   })
 })

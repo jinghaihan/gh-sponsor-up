@@ -1,5 +1,7 @@
 import type { CommandOptions, ConfigOptions, Options } from './types'
+import { access } from 'node:fs/promises'
 import process from 'node:process'
+import { resolve } from 'pathe'
 import { createConfigLoader } from 'unconfig'
 import { DEFAULT_OPTIONS } from './constants'
 
@@ -25,6 +27,7 @@ export async function resolveConfig(options: Partial<CommandOptions> = {}): Prom
   const configOptions = await readConfig(options)
   const merged = { ...defaults, ...configOptions, ...options }
   merged.token ||= process.env.GH_TOKEN || process.env.GITHUB_TOKEN
+  merged.fundingTemplate = normalizeFundingTemplate(merged.fundingTemplate)
 
   if (merged.funding)
     merged.funding = Array.isArray(merged.funding) ? merged.funding : [merged.funding]
@@ -33,6 +36,9 @@ export async function resolveConfig(options: Partial<CommandOptions> = {}): Prom
 
   merged.retries = normalizeRetries(merged.retries)
   merged.retryInterval = normalizeRetryInterval(merged.retryInterval)
+
+  if (merged.fundingTemplate)
+    await ensureFileExists(merged.fundingTemplate)
 
   return merged as Options
 }
@@ -62,4 +68,20 @@ function normalizeRetryInterval(value?: number | string) {
     throw new Error('retryInterval must be a non-negative integer.')
 
   return retryInterval
+}
+
+function normalizeFundingTemplate(value?: string) {
+  if (!value)
+    return
+
+  return resolve(process.cwd(), value)
+}
+
+async function ensureFileExists(path: string) {
+  try {
+    await access(path)
+  }
+  catch {
+    throw new Error(`funding template not found: ${path}`)
+  }
 }

@@ -1,6 +1,7 @@
 export interface CommandOptions {
   cwd?: string
   funding?: string | string[]
+  fundingTemplate?: string
   token?: string
   commit?: boolean
   push?: boolean

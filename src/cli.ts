@@ -28,6 +28,7 @@ cli
   .command('', 'Sync funding metadata and enable GitHub sponsorships in bulk')
   .option('--cwd <path>', 'Current working directory')
   .option('--funding <fundings>', 'Funding people or organizations of github sponsorships')
+  .option('--funding-template <path>', 'Copy a YAML file as .github/FUNDING.yml when it is missing')
   .option('--token <token>', 'GitHub token for enabling project sponsorships')
   .option('--commit', 'Whether to commit the changes', { default: true })
   .option('--push', 'Whether to push the changes', { default: true })

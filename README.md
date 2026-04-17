@@ -34,12 +34,14 @@ import { defineConfig } from 'gh-sponsor-up'
 
 export default defineConfig({
   funding: 'jinghaihan',
+  fundingTemplate: './templates/FUNDING.yml',
   retries: 5,
   retryInterval: 120000,
 })
 ```
 
 If `token` is omitted, `GH_TOKEN` or `GITHUB_TOKEN` will be used automatically.
+If `fundingTemplate` is provided, the file will be copied as `.github/FUNDING.yml` when a repository does not already have one.
 
 ## License
 
